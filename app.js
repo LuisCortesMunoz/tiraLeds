@@ -1,5 +1,5 @@
 // Step 1: Put your Render URL here
-const API_BASE = "https://docker-flask-servidor-render.onrender.com";
+const API_BASE = "https://YOUR-RENDER-URL.onrender.com";
 
 const el = (id) => document.getElementById(id);
 
@@ -20,7 +20,7 @@ let ledState = Array(8).fill(false);
 const colorInput = el("color");
 const ledButtons = document.querySelectorAll(".led-btn");
 
-// Step 5: Toggle button UI + state
+// Step 5: Render button UI
 function renderButtons() {
   ledButtons.forEach((btn) => {
     const idx = Number(btn.dataset.led);
@@ -29,26 +29,7 @@ function renderButtons() {
   });
 }
 
-ledButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const idx = Number(btn.dataset.led);
-    ledState[idx] = !ledState[idx];
-    renderButtons();
-  });
-});
-
-// Step 6: All ON / All OFF
-el("btnAllOn").addEventListener("click", () => {
-  ledState = Array(8).fill(true);
-  renderButtons();
-});
-
-el("btnAllOff").addEventListener("click", () => {
-  ledState = Array(8).fill(false);
-  renderButtons();
-});
-
-// Step 7: Send to backend
+// Step 6: Send to backend
 async function sendToBackend() {
   const payload = {
     hex: colorInput.value,  // color for any LED that is ON
@@ -71,8 +52,41 @@ async function sendToBackend() {
   }
 }
 
+// Step 7: LED individual toggles (NOW auto-send)
+ledButtons.forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const idx = Number(btn.dataset.led);
+    ledState[idx] = !ledState[idx];
+    renderButtons();
+    await sendToBackend(); // ✅ auto send
+  });
+});
+
+// Step 8: All ON (NOW auto-send)
+el("btnAllOn").addEventListener("click", async () => {
+  ledState = Array(8).fill(true);
+  renderButtons();
+  await sendToBackend(); // ✅ auto send
+});
+
+// Step 9: All OFF (NOW auto-send)
+el("btnAllOff").addEventListener("click", async () => {
+  ledState = Array(8).fill(false);
+  renderButtons();
+  await sendToBackend(); // ✅ auto send
+});
+
+// Step 10: Color change (optional auto-send)
+// Si quieres que al cambiar color se mande solo, descomenta esto:
+/*
+colorInput.addEventListener("input", async () => {
+  await sendToBackend();
+});
+*/
+
+// Step 11: Keep "Send to ESP32" button working (optional)
 el("btnSend").addEventListener("click", sendToBackend);
 
-// Step 8: Initial render
+// Step 12: Init
 renderButtons();
 log("Ready.");
